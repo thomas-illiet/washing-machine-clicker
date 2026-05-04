@@ -2,6 +2,9 @@ const GAME_CONFIG = {
   saveKey: "washing-machine-clicker-save-v1",
   autosaveIntervalMs: 5000,
   maxVisibleCursors: 18,
+  maxVisibleDetergentTablets: 6,
+  detergentTabletMinDelayMs: 700,
+  detergentTabletMaxDelayMs: 1800,
   upgradeBaseCostMultiplier: 1.35,
   upgradeCostGrowthFactor: 1.18,
   upgradeUnlockRatio: 1.05,
@@ -214,6 +217,7 @@ const DOM = {
   passiveRate: document.getElementById("passive-rate"),
   lifetimeTotal: document.getElementById("lifetime-total"),
   washerButton: document.getElementById("washer-button"),
+  detergentFallLayer: document.getElementById("detergent-fall-layer"),
   cursorSwarm: document.getElementById("cursor-swarm"),
   floatingTextLayer: document.getElementById("floating-text-layer"),
   shopList: document.getElementById("shop-list"),
@@ -261,6 +265,7 @@ let state = createInitialState();
 const runtimeState = {
   revealedUpgradeIds: new Set(getInitialRevealedUpgradeIds()),
   unlockAnchorTotal: 0,
+  detergentTabletTimeoutId: null,
 };
 
 function formatNumber(value) {
@@ -296,6 +301,10 @@ function getUpgradeCost(upgrade, ownedCount) {
       GAME_CONFIG.upgradeBaseCostMultiplier *
       Math.pow(GAME_CONFIG.upgradeCostGrowthFactor, ownedCount),
   );
+}
+
+function getRandomNumber(minValue, maxValue) {
+  return minValue + Math.random() * (maxValue - minValue);
 }
 
 function getUpgradeUnlockRequirement(upgradeIndex) {
@@ -407,6 +416,92 @@ function showUnlockToast(upgrade) {
   window.setTimeout(() => {
     dismissUnlockToast(toast);
   }, GAME_CONFIG.upgradeToastDurationMs);
+}
+
+function createFallingDetergentTablet() {
+  if (!DOM.detergentFallLayer) {
+    return;
+  }
+
+  if (DOM.detergentFallLayer.childElementCount >= GAME_CONFIG.maxVisibleDetergentTablets) {
+    return;
+  }
+
+  const tablet = document.createElement("span");
+  const size = getRandomNumber(22, 40);
+  const startX = getRandomNumber(4, 92);
+  const driftX = getRandomNumber(-88, 88);
+  const duration = getRandomNumber(6.2, 9.4);
+  const opacity = getRandomNumber(0.42, 0.72);
+  const blur = getRandomNumber(0, 0.8);
+  const scale = getRandomNumber(0.88, 1.18);
+  const rotateStart = getRandomNumber(-32, 28);
+  const rotateEnd = rotateStart + getRandomNumber(90, 220);
+  const travelDistance =
+    (DOM.detergentFallLayer?.offsetHeight || 420) + size * 3 + getRandomNumber(40, 120);
+
+  tablet.className = "detergent-fall";
+  tablet.style.left = `${startX}%`;
+  tablet.style.setProperty("--tablet-size", `${size}px`);
+  tablet.style.setProperty("--tablet-drift-x", `${driftX}px`);
+  tablet.style.setProperty("--tablet-travel-y", `${Math.round(travelDistance)}px`);
+  tablet.style.setProperty("--tablet-duration", `${duration}s`);
+  tablet.style.setProperty("--tablet-opacity", opacity.toFixed(2));
+  tablet.style.setProperty("--tablet-blur", `${blur.toFixed(2)}px`);
+  tablet.style.setProperty("--tablet-scale", scale.toFixed(2));
+  tablet.style.setProperty("--tablet-rotate-start", `${rotateStart.toFixed(1)}deg`);
+  tablet.style.setProperty("--tablet-rotate-end", `${rotateEnd.toFixed(1)}deg`);
+
+  DOM.detergentFallLayer.appendChild(tablet);
+  tablet.addEventListener(
+    "animationend",
+    () => {
+      tablet.remove();
+    },
+    { once: true },
+  );
+}
+
+function primeDetergentTabletSnow() {
+  const initialCount = 2;
+
+  for (let index = 0; index < initialCount; index += 1) {
+    window.setTimeout(() => {
+      createFallingDetergentTablet();
+    }, index * 140);
+  }
+}
+
+function stopDetergentTabletSnow() {
+  if (runtimeState.detergentTabletTimeoutId) {
+    window.clearTimeout(runtimeState.detergentTabletTimeoutId);
+    runtimeState.detergentTabletTimeoutId = null;
+  }
+}
+
+function scheduleDetergentTabletSnow() {
+  stopDetergentTabletSnow();
+
+  if (!DOM.detergentFallLayer || document.visibilityState === "hidden") {
+    return;
+  }
+
+  const delay = getRandomNumber(
+    GAME_CONFIG.detergentTabletMinDelayMs,
+    GAME_CONFIG.detergentTabletMaxDelayMs,
+  );
+
+  runtimeState.detergentTabletTimeoutId = window.setTimeout(() => {
+    createFallingDetergentTablet();
+
+    if (Math.random() < 0.12) {
+      window.setTimeout(() => {
+        createFallingDetergentTablet();
+      }, getRandomNumber(240, 520));
+    }
+
+    scheduleDetergentTabletSnow();
+  }, delay);
 }
 
 function syncUnlockedUpgrades({ silent = false } = {}) {
@@ -1131,8 +1226,14 @@ function setupEvents() {
     if (document.visibilityState === "hidden") {
       saveGame();
       muteAmbientSound();
+      stopDetergentTabletSnow();
     } else if (state.soundEnabled && audioEngine.unlocked) {
       unlockAmbientSound();
+      primeDetergentTabletSnow();
+      scheduleDetergentTabletSnow();
+    } else {
+      primeDetergentTabletSnow();
+      scheduleDetergentTabletSnow();
     }
   });
 }
@@ -1141,6 +1242,8 @@ function init() {
   buildShop();
   loadGame();
   setupEvents();
+  primeDetergentTabletSnow();
+  scheduleDetergentTabletSnow();
   window.setInterval(saveGame, GAME_CONFIG.autosaveIntervalMs);
   window.requestAnimationFrame((timestamp) => {
     state.lastTick = timestamp;

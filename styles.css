@@ -186,7 +186,7 @@ h1 {
 .washer-wrap,
 .stage-footer {
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .washer-stage .stage-card::before {
@@ -202,6 +202,72 @@ h1 {
   right: -100px;
   top: -120px;
   background: rgba(21, 182, 212, 0.12);
+}
+
+.detergent-fall-layer {
+  position: absolute;
+  inset: 18px 24px 56px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 3%, #000 84%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 3%, #000 84%, transparent 100%);
+}
+
+.detergent-fall {
+  position: absolute;
+  top: calc(var(--tablet-size) * -0.9);
+  display: block;
+  width: var(--tablet-size);
+  height: calc(var(--tablet-size) * 0.76);
+  overflow: hidden;
+  border-radius: 32% 32% 36% 36% / 34% 34% 42% 42%;
+  background:
+    radial-gradient(circle at 22% 20%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0) 24%),
+    linear-gradient(180deg, rgba(253, 255, 255, 0.96), rgba(221, 245, 255, 0.94) 62%, rgba(187, 230, 246, 0.92));
+  box-shadow:
+    inset 0 0 0 1.5px rgba(255, 255, 255, 0.85),
+    inset 0 -4px 8px rgba(52, 145, 181, 0.16),
+    0 10px 18px rgba(21, 48, 71, 0.1);
+  opacity: 0;
+  filter: blur(var(--tablet-blur));
+  will-change: transform, opacity;
+  animation: detergent-tablet-fall var(--tablet-duration) linear forwards;
+}
+
+.detergent-fall::before,
+.detergent-fall::after {
+  content: "";
+  position: absolute;
+}
+
+.detergent-fall::before {
+  left: 9%;
+  top: 12%;
+  bottom: 12%;
+  width: 43%;
+  border-radius: 40% 34% 36% 42% / 42% 36% 44% 38%;
+  background:
+    radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0) 34%),
+    linear-gradient(180deg, rgba(140, 232, 255, 0.98), rgba(64, 196, 234, 0.96));
+  box-shadow:
+    inset 0 -4px 7px rgba(14, 123, 164, 0.18),
+    0 0 0 1px rgba(255, 255, 255, 0.32);
+}
+
+.detergent-fall::after {
+  right: 9%;
+  top: 14%;
+  bottom: 14%;
+  width: 37%;
+  border-radius: 44% 38% 42% 36% / 42% 42% 38% 38%;
+  background:
+    radial-gradient(circle at 38% 30%, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0) 34%),
+    linear-gradient(180deg, rgba(255, 132, 128, 0.96), rgba(255, 92, 106, 0.92));
+  box-shadow:
+    inset 0 -4px 7px rgba(168, 49, 67, 0.16),
+    0 0 0 1px rgba(255, 255, 255, 0.3);
+  opacity: 0.96;
 }
 
 .wash-water {
@@ -988,6 +1054,29 @@ h1 {
   }
 }
 
+@keyframes detergent-tablet-fall {
+  0% {
+    opacity: calc(var(--tablet-opacity) * 0.22);
+    transform: translate3d(0, -4%, 0) rotate(var(--tablet-rotate-start)) scale(var(--tablet-scale));
+  }
+
+  4% {
+    opacity: var(--tablet-opacity);
+  }
+
+  55% {
+    opacity: calc(var(--tablet-opacity) * 0.92);
+  }
+
+  100% {
+    opacity: 0;
+    transform:
+      translate3d(var(--tablet-drift-x), var(--tablet-travel-y), 0)
+      rotate(var(--tablet-rotate-end))
+      scale(var(--tablet-scale));
+  }
+}
+
 @keyframes cursor-orbit {
   from {
     transform:
@@ -1171,6 +1260,10 @@ h1 {
     height: 82px;
   }
 
+  .detergent-fall-layer {
+    inset: 16px 20px 48px;
+  }
+
   .washer {
     width: min(100%, 300px);
     border-radius: 32px;
@@ -1234,6 +1327,10 @@ h1 {
 
   .wash-water {
     height: 44px;
+  }
+
+  .detergent-fall-layer {
+    inset: 14px 12px 34px;
   }
 
   .washer {
@@ -1323,5 +1420,11 @@ h1 {
   .unlock-toast__media {
     width: 56px;
     border-radius: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detergent-fall-layer {
+    display: none;
   }
 }
