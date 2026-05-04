@@ -1,0 +1,23 @@
+{
+  "name": "Washing Machine",
+  "short_name": "Washing",
+  "description": "Wash mountains of laundry and turn your laundromat into a bubbly empire.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f8f6ea",
+  "theme_color": "#7fd4f4",
+  "icons": [
+    {
+      "src": "assets/icons/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icons/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
