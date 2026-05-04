@@ -29,6 +29,17 @@ A playful idle clicker game built with vanilla HTML, CSS, and JavaScript. Click 
 | Orbital Laundromat | 9,500 | +24 | +125 | A ring of zero-gravity washers spins above the city cleaning laundry in orbit. |
 | Black Hole Washer | 22,000 | +55 | +280 | An impossible washer bends space, time, and detergent into pure output. |
 | Time Loop Laundry | 50,000 | +120 | +620 | Tomorrow's clean laundry arrives today, again and again and again. |
+| Quantum Rinse Lab | 100,000 | +190 | +900 | A clean-room lab tunes every rinse cycle with impossible precision. |
+| Solar Dryer Array | 210,000 | +330 | +1,900 | Rows of sun-charged dryers bake through mountains of laundry at once. |
+| Tidal Foam Plant | 470,000 | +550 | +3,900 | A coastal foam plant pumps endless detergent waves straight into the drums. |
+| Neon Fold District | 1,100,000 | +900 | +7,600 | An entire glowing district folds, stacks, and ships laundry nonstop. |
+| Lunar Spin Colony | 2,600,000 | +1,450 | +14,500 | Low-gravity wash towers on the moon keep the spin cycle permanently boosted. |
+| Gravity Press Reactor | 6,500,000 | +2,400 | +28,500 | A reactor crushes wrinkles and time itself into pure throughput. |
+| Multiverse Laundry Grid | 18,000,000 | +3,900 | +59,000 | Parallel laundromats across nearby realities all bill their output to you. |
+| Reality Wash Engine | 52,000,000 | +6,300 | +120,000 | A reality engine resets dirty fabric into the cleanest possible timeline. |
+| Cosmic Detergent Vault | 170,000,000 | +9,800 | +250,000 | A sealed vault of star-grade detergent keeps every machine overclocked forever. |
+| Infinity Whirlpool Core | 620,000,000 | +15,000 | +500,000 | An infinite vortex drags in dirty laundry and spits it back spotless. |
+| Chrono Soap Singularity | 2,600,000,000 | +23,000 | +980,000 | The final machine washes entire centuries of laundry in a single blink. |
 
 ## Play locally
 

@@ -102,6 +102,105 @@ const GAME_CONFIG = {
       passivePower: 620,
       effectLabel: "+120 per click and +620 per second",
     },
+    {
+      id: "labo_rincage_quantique",
+      name: "Quantum Rinse Lab",
+      description: "A clean-room lab tunes every rinse cycle with impossible precision.",
+      baseCost: 100000,
+      clickPower: 190,
+      passivePower: 900,
+      effectLabel: "+190 per click and +900 per second",
+    },
+    {
+      id: "batterie_sechage_solaire",
+      name: "Solar Dryer Array",
+      description: "Rows of sun-charged dryers bake through mountains of laundry at once.",
+      baseCost: 210000,
+      clickPower: 330,
+      passivePower: 1900,
+      effectLabel: "+330 per click and +1.9K per second",
+    },
+    {
+      id: "usine_mousse_maree",
+      name: "Tidal Foam Plant",
+      description: "A coastal foam plant pumps endless detergent waves straight into the drums.",
+      baseCost: 470000,
+      clickPower: 550,
+      passivePower: 3900,
+      effectLabel: "+550 per click and +3.9K per second",
+    },
+    {
+      id: "district_pliage_neon",
+      name: "Neon Fold District",
+      description: "An entire glowing district folds, stacks, and ships laundry nonstop.",
+      baseCost: 1100000,
+      clickPower: 900,
+      passivePower: 7600,
+      effectLabel: "+900 per click and +7.6K per second",
+    },
+    {
+      id: "colonie_lunaire_essorage",
+      name: "Lunar Spin Colony",
+      description: "Low-gravity wash towers on the moon keep the spin cycle permanently boosted.",
+      baseCost: 2600000,
+      clickPower: 1450,
+      passivePower: 14500,
+      effectLabel: "+1.45K per click and +14.5K per second",
+    },
+    {
+      id: "reacteur_pression_gravite",
+      name: "Gravity Press Reactor",
+      description: "A reactor crushes wrinkles and time itself into pure throughput.",
+      baseCost: 6500000,
+      clickPower: 2400,
+      passivePower: 28500,
+      effectLabel: "+2.4K per click and +28.5K per second",
+    },
+    {
+      id: "grille_laverie_multivers",
+      name: "Multiverse Laundry Grid",
+      description: "Parallel laundromats across nearby realities all bill their output to you.",
+      baseCost: 18000000,
+      clickPower: 3900,
+      passivePower: 59000,
+      effectLabel: "+3.9K per click and +59K per second",
+    },
+    {
+      id: "moteur_lavage_realite",
+      name: "Reality Wash Engine",
+      description: "A reality engine resets dirty fabric into the cleanest possible timeline.",
+      baseCost: 52000000,
+      clickPower: 6300,
+      passivePower: 120000,
+      effectLabel: "+6.3K per click and +120K per second",
+    },
+    {
+      id: "coffre_lessive_cosmique",
+      name: "Cosmic Detergent Vault",
+      description: "A sealed vault of star-grade detergent keeps every machine overclocked forever.",
+      baseCost: 170000000,
+      clickPower: 9800,
+      passivePower: 250000,
+      effectLabel: "+9.8K per click and +250K per second",
+    },
+    {
+      id: "noyau_vortex_infini",
+      name: "Infinity Whirlpool Core",
+      description: "An infinite vortex drags in dirty laundry and spits it back spotless.",
+      baseCost: 620000000,
+      clickPower: 15000,
+      passivePower: 500000,
+      effectLabel: "+15K per click and +500K per second",
+    },
+    {
+      id: "singularite_savon_chrono",
+      name: "Chrono Soap Singularity",
+      description: "The final machine washes entire centuries of laundry in a single blink.",
+      baseCost: 2600000000,
+      clickPower: 23000,
+      passivePower: 980000,
+      effectLabel: "+23K per click and +980K per second",
+    },
   ],
 };
 
@@ -154,6 +253,23 @@ let state = createInitialState();
 function formatNumber(value) {
   const safeValue = Math.max(0, value);
   const absoluteValue = Math.abs(safeValue);
+  const compactUnits = [
+    { value: 1e15, suffix: "Qa" },
+    { value: 1e12, suffix: "T" },
+    { value: 1e9, suffix: "B" },
+    { value: 1e6, suffix: "M" },
+    { value: 1e3, suffix: "K" },
+  ];
+
+  const compactUnit = compactUnits.find((unit) => absoluteValue >= unit.value);
+
+  if (compactUnit && absoluteValue >= 10000) {
+    const scaledValue = safeValue / compactUnit.value;
+    const maximumFractionDigits = scaledValue >= 100 ? 0 : scaledValue >= 10 ? 1 : 2;
+
+    return `${new Intl.NumberFormat("en-US", { maximumFractionDigits }).format(scaledValue)}${compactUnit.suffix}`;
+  }
+
   const maximumFractionDigits = absoluteValue >= 100 ? 0 : absoluteValue >= 10 ? 1 : 2;
 
   return new Intl.NumberFormat("en-US", {
@@ -451,7 +567,7 @@ function renderShop() {
     const button = card.querySelector(".shop-buy");
 
     card.classList.toggle("is-affordable", canAfford);
-    card.querySelector('[data-role="owned"]').textContent = ownedCount;
+    card.querySelector('[data-role="owned"]').textContent = formatNumber(ownedCount);
     card.querySelector('[data-role="button-cost"]').textContent = formatNumber(cost);
     button.disabled = !canAfford;
   });
@@ -550,7 +666,7 @@ function renderCursorSwarm() {
   if (ownedCount > visibleCount) {
     const overflow = document.createElement("span");
     overflow.className = "cursor-swarm__overflow";
-    overflow.textContent = `+${ownedCount - visibleCount}`;
+    overflow.textContent = `+${formatNumber(ownedCount - visibleCount)}`;
     fragment.appendChild(overflow);
   }
 
