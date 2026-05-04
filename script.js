@@ -2,6 +2,8 @@ const GAME_CONFIG = {
   saveKey: "washing-machine-clicker-save-v1",
   autosaveIntervalMs: 5000,
   maxVisibleCursors: 18,
+  upgradeUnlockRatio: 0.65,
+  upgradeToastDurationMs: 3600,
   upgrades: [
     {
       id: "lessive_plus",
@@ -214,6 +216,7 @@ const DOM = {
   floatingTextLayer: document.getElementById("floating-text-layer"),
   shopList: document.getElementById("shop-list"),
   soundToggle: document.getElementById("sound-toggle"),
+  toastStack: document.getElementById("toast-stack"),
 };
 
 const LESSIVE_PLUS_ID = "lessive_plus";
@@ -232,6 +235,10 @@ const audioEngine = {
   waterFilterLfo: null,
 };
 
+function getInitialRevealedUpgradeIds() {
+  return [GAME_CONFIG.upgrades[0].id];
+}
+
 function createInitialUpgrades() {
   return Object.fromEntries(GAME_CONFIG.upgrades.map((upgrade) => [upgrade.id, 0]));
 }
@@ -249,6 +256,10 @@ function createInitialState() {
 }
 
 let state = createInitialState();
+const runtimeState = {
+  revealedUpgradeIds: new Set(getInitialRevealedUpgradeIds()),
+  unlockAnchorTotal: 0,
+};
 
 function formatNumber(value) {
   const safeValue = Math.max(0, value);
@@ -279,6 +290,131 @@ function formatNumber(value) {
 
 function getUpgradeCost(upgrade, ownedCount) {
   return Math.round(upgrade.baseCost * Math.pow(1.15, ownedCount));
+}
+
+function getUpgradeUnlockRequirement(upgradeIndex) {
+  if (upgradeIndex === 0) {
+    return 0;
+  }
+
+  const upgrade = GAME_CONFIG.upgrades[upgradeIndex];
+  return Math.max(10, Math.round(upgrade.baseCost * GAME_CONFIG.upgradeUnlockRatio));
+}
+
+function getNextLockedUpgrade() {
+  const nextLockedIndex = GAME_CONFIG.upgrades.findIndex(
+    (upgrade) => !runtimeState.revealedUpgradeIds.has(upgrade.id),
+  );
+
+  if (nextLockedIndex === -1) {
+    return null;
+  }
+
+  const upgrade = GAME_CONFIG.upgrades[nextLockedIndex];
+  return {
+    ...upgrade,
+    index: nextLockedIndex,
+    unlockRequirement: getUpgradeUnlockRequirement(nextLockedIndex),
+    unlockThreshold: runtimeState.unlockAnchorTotal + getUpgradeUnlockRequirement(nextLockedIndex),
+  };
+}
+
+function revealOwnedUpgradeIds(upgrades) {
+  return GAME_CONFIG.upgrades
+    .filter((upgrade) => upgrades[upgrade.id] > 0)
+    .map((upgrade) => upgrade.id);
+}
+
+function resetRevealProgress() {
+  runtimeState.revealedUpgradeIds = new Set(getInitialRevealedUpgradeIds());
+  runtimeState.unlockAnchorTotal = 0;
+}
+
+function hydrateRevealProgressFromSave(parsedUpgrades, parsedRevealedUpgradeIds, parsedUnlockAnchorTotal, totalProduit) {
+  const validSavedIds = Array.isArray(parsedRevealedUpgradeIds)
+    ? parsedRevealedUpgradeIds.filter((upgradeId) =>
+        GAME_CONFIG.upgrades.some((upgrade) => upgrade.id === upgradeId),
+      )
+    : [];
+
+  const ownedUpgradeIds = revealOwnedUpgradeIds(parsedUpgrades);
+  const revealedIds =
+    validSavedIds.length > 0
+      ? Array.from(new Set([...getInitialRevealedUpgradeIds(), ...ownedUpgradeIds, ...validSavedIds]))
+      : Array.from(new Set([...getInitialRevealedUpgradeIds(), ...ownedUpgradeIds]));
+
+  runtimeState.revealedUpgradeIds = new Set(revealedIds);
+  runtimeState.unlockAnchorTotal =
+    typeof parsedUnlockAnchorTotal === "number" && Number.isFinite(parsedUnlockAnchorTotal)
+      ? Math.max(0, parsedUnlockAnchorTotal)
+      : Math.max(0, totalProduit);
+}
+
+function dismissUnlockToast(toast) {
+  if (!toast?.isConnected) {
+    return;
+  }
+
+  toast.classList.remove("is-visible");
+
+  window.setTimeout(() => {
+    toast.remove();
+  }, 220);
+}
+
+function showUnlockToast(upgrade) {
+  if (!DOM.toastStack) {
+    return;
+  }
+
+  const toast = document.createElement("article");
+  toast.className = "unlock-toast";
+  toast.innerHTML = `
+    <div class="unlock-toast__media" aria-hidden="true">
+      <img
+        class="unlock-toast__image"
+        src="assets/upgrades/${upgrade.id}.png"
+        alt=""
+        width="72"
+        height="72"
+        loading="lazy"
+        decoding="async"
+      />
+    </div>
+    <div class="unlock-toast__content">
+      <p class="unlock-toast__eyebrow">Upgrade unlocked</p>
+      <strong class="unlock-toast__title">${upgrade.name}</strong>
+      <p class="unlock-toast__effect">${upgrade.effectLabel}</p>
+    </div>
+  `;
+
+  toast.addEventListener("click", () => {
+    dismissUnlockToast(toast);
+  });
+
+  DOM.toastStack.appendChild(toast);
+
+  window.requestAnimationFrame(() => {
+    toast.classList.add("is-visible");
+  });
+
+  window.setTimeout(() => {
+    dismissUnlockToast(toast);
+  }, GAME_CONFIG.upgradeToastDurationMs);
+}
+
+function syncUnlockedUpgrades({ silent = false } = {}) {
+  const nextUpgrade = getNextLockedUpgrade();
+  if (!nextUpgrade || state.totalProduit < nextUpgrade.unlockThreshold) {
+    return;
+  }
+
+  runtimeState.revealedUpgradeIds.add(nextUpgrade.id);
+  runtimeState.unlockAnchorTotal = state.totalProduit;
+
+  if (!silent) {
+    showUnlockToast(nextUpgrade);
+  }
 }
 
 function createNoiseBuffer(context) {
@@ -561,6 +697,13 @@ function renderShop() {
       return;
     }
 
+    const isRevealed = runtimeState.revealedUpgradeIds.has(upgrade.id);
+    card.hidden = !isRevealed;
+
+    if (!isRevealed) {
+      return;
+    }
+
     const ownedCount = state.upgrades[upgrade.id] || 0;
     const cost = getUpgradeCost(upgrade, ownedCount);
     const canAfford = state.lingePropre >= cost;
@@ -571,6 +714,43 @@ function renderShop() {
     card.querySelector('[data-role="button-cost"]').textContent = formatNumber(cost);
     button.disabled = !canAfford;
   });
+
+  renderNextUnlockCard();
+}
+
+function renderNextUnlockCard() {
+  if (!DOM.nextUnlockCard) {
+    return;
+  }
+
+  if (state.totalProduit <= 0) {
+    DOM.nextUnlockCard.hidden = true;
+    return;
+  }
+
+  const nextUpgrade = getNextLockedUpgrade();
+
+  if (!nextUpgrade) {
+    DOM.nextUnlockCard.hidden = true;
+    return;
+  }
+
+  const progressSinceLastUnlock = Math.max(0, state.totalProduit - runtimeState.unlockAnchorTotal);
+  const progressValue = Math.min(progressSinceLastUnlock, nextUpgrade.unlockRequirement);
+  const progressRatio =
+    nextUpgrade.unlockRequirement > 0 ? Math.min(1, progressValue / nextUpgrade.unlockRequirement) : 1;
+
+  DOM.nextUnlockCard.hidden = false;
+  DOM.nextUnlockCard.querySelector('[data-role="next-name"]').textContent = nextUpgrade.name;
+  DOM.nextUnlockCard.querySelector('[data-role="next-description"]').textContent = nextUpgrade.description;
+  DOM.nextUnlockCard.querySelector('[data-role="next-effect"]').textContent = nextUpgrade.effectLabel;
+  DOM.nextUnlockCard.querySelector('[data-role="next-threshold"]').textContent = formatNumber(nextUpgrade.unlockRequirement);
+  DOM.nextUnlockCard.querySelector('[data-role="next-cost"]').textContent = formatNumber(
+    nextUpgrade.baseCost,
+  );
+  DOM.nextUnlockCard.querySelector('[data-role="next-progress-fill"]').style.width = `${progressRatio * 100}%`;
+  DOM.nextUnlockCard.querySelector('[data-role="next-progress-label"]').textContent =
+    `${formatNumber(progressValue)} / ${formatNumber(nextUpgrade.unlockRequirement)} washed since last unlock`;
 }
 
 function renderCursorSwarm() {
@@ -736,6 +916,7 @@ function handleWashClick() {
   unlockAmbientSound();
   pulseWasher();
   createFloatingText(state.parClic);
+  syncUnlockedUpgrades();
   render();
   void playWashClickSound();
 }
@@ -771,6 +952,8 @@ function saveGame() {
     totalProduit: Number(state.totalProduit.toFixed(4)),
     soundEnabled: state.soundEnabled,
     upgrades: state.upgrades,
+    revealedUpgradeIds: Array.from(runtimeState.revealedUpgradeIds),
+    unlockAnchorTotal: Number(runtimeState.unlockAnchorTotal.toFixed(4)),
   };
 
   localStorage.setItem(GAME_CONFIG.saveKey, JSON.stringify(payload));
@@ -781,7 +964,9 @@ function loadGame() {
 
   if (!savedState) {
     state = createInitialState();
+    resetRevealProgress();
     recalculateRates();
+    syncUnlockedUpgrades({ silent: true });
     render();
     return;
   }
@@ -803,12 +988,20 @@ function loadGame() {
 
     freshState.lastTick = Date.now();
     state = freshState;
+    hydrateRevealProgressFromSave(
+      freshState.upgrades,
+      parsed.revealedUpgradeIds,
+      Number(parsed.unlockAnchorTotal),
+      freshState.totalProduit,
+    );
   } catch (error) {
     console.warn("Could not load the save file.", error);
     state = createInitialState();
+    resetRevealProgress();
   }
 
   recalculateRates();
+  syncUnlockedUpgrades({ silent: true });
   render();
 }
 
@@ -837,6 +1030,7 @@ function gameLoop(timestamp) {
     const generatedAmount = (elapsedMs / 1000) * state.parSeconde;
     state.lingePropre += generatedAmount;
     state.totalProduit += generatedAmount;
+    syncUnlockedUpgrades();
   }
 
   render();
@@ -844,28 +1038,76 @@ function gameLoop(timestamp) {
 }
 
 function buildShop() {
-  DOM.shopList.innerHTML = GAME_CONFIG.upgrades
-    .map((upgrade) => {
-      return `
-        <article class="shop-card" data-card-id="${upgrade.id}">
-          <div class="shop-card__top">
-            <div>
-              <h3>${upgrade.name}</h3>
-              <p class="shop-description">${upgrade.description}</p>
+  DOM.shopList.innerHTML =
+    GAME_CONFIG.upgrades
+      .map((upgrade) => {
+        return `
+          <article class="shop-card" data-card-id="${upgrade.id}">
+            <div class="shop-card__media" aria-hidden="true">
+              <img
+                class="shop-card__image"
+                src="assets/upgrades/${upgrade.id}.png"
+                alt=""
+                width="320"
+                height="320"
+                loading="lazy"
+                decoding="async"
+              />
             </div>
-            <span class="shop-owned">Owned: <span data-role="owned">0</span></span>
+            <div class="shop-card__content">
+              <div class="shop-card__top">
+                <div class="shop-card__copy">
+                  <h3>${upgrade.name}</h3>
+                  <p class="shop-description">${upgrade.description}</p>
+                </div>
+                <span class="shop-owned">Owned: <span data-role="owned">0</span></span>
+              </div>
+              <div class="shop-card__bottom">
+                <p class="shop-effect">${upgrade.effectLabel}</p>
+                <button class="shop-buy" type="button" data-upgrade-id="${upgrade.id}">
+                  <span>Buy</span>
+                  <strong data-role="button-cost">${formatNumber(upgrade.baseCost)}</strong>
+                </button>
+              </div>
+            </div>
+          </article>
+        `;
+      })
+      .join("") +
+    `
+      <article id="next-unlock-card" class="shop-card shop-card--locked" hidden>
+        <div class="shop-card__media shop-card__media--locked" aria-hidden="true">
+          <span class="shop-card__lock-badge">Soon</span>
+        </div>
+        <div class="shop-card__content">
+          <div class="shop-card__top">
+            <div class="shop-card__copy">
+              <p class="shop-soon">Next unlock</p>
+              <h3 data-role="next-name"></h3>
+              <p class="shop-description" data-role="next-description"></p>
+            </div>
+            <span class="shop-owned shop-owned--locked">Locked</span>
           </div>
-          <div class="shop-card__bottom">
-            <p class="shop-effect">${upgrade.effectLabel}</p>
-            <button class="shop-buy" type="button" data-upgrade-id="${upgrade.id}">
-              <span>Buy</span>
-              <strong data-role="button-cost">${formatNumber(upgrade.baseCost)}</strong>
-            </button>
+          <div class="shop-card__bottom shop-card__bottom--locked">
+            <div class="shop-progress">
+              <div class="shop-progress__track" aria-hidden="true">
+                <span class="shop-progress__fill" data-role="next-progress-fill"></span>
+              </div>
+              <p class="shop-progress__label" data-role="next-progress-label"></p>
+            </div>
+            <div class="shop-next-meta">
+              <p class="shop-effect" data-role="next-effect"></p>
+              <p class="shop-next-meta__details">
+                Unlocks at <strong data-role="next-threshold"></strong> / Costs
+                <strong data-role="next-cost"></strong>
+              </p>
+            </div>
           </div>
-        </article>
-      `;
-    })
-    .join("");
+        </div>
+      </article>
+    `;
+
+  DOM.nextUnlockCard = document.getElementById("next-unlock-card");
 
   DOM.shopList.querySelectorAll("[data-upgrade-id]").forEach((button) => {
     button.addEventListener("click", () => {
