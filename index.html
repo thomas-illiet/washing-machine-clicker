@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Washing Machine</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <p class="eyebrow">Laundry idle</p>
+          <h1>Washing Machine</h1>
+          <p class="subtitle">
+            Wash mountains of laundry and turn your laundromat into a bubbly empire.
+          </p>
+        </div>
+
+        <div class="stats-panel" id="stats-panel" aria-live="polite">
+          <article class="stat-card">
+            <span class="stat-label">Clean laundry</span>
+            <strong class="stat-value" id="clean-count">0</strong>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">Per click</span>
+            <strong class="stat-value" id="click-power">1</strong>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">Per second</span>
+            <strong class="stat-value" id="passive-rate">0</strong>
+          </article>
+        </div>
+      </header>
+
+      <main class="game-layout">
+        <section class="washer-stage" aria-labelledby="washer-zone-label">
+          <div class="stage-card">
+            <div class="stage-copy">
+              <p id="washer-zone-label" class="eyebrow">Wash zone</p>
+            </div>
+
+            <div class="washer-wrap">
+              <button
+                id="washer-button"
+                class="washer"
+                type="button"
+                aria-label="Start a wash cycle"
+              >
+                <span class="washer__bubble washer__bubble--1"></span>
+                <span class="washer__bubble washer__bubble--2"></span>
+                <span class="washer__bubble washer__bubble--3"></span>
+                <span class="washer__bubble washer__bubble--4"></span>
+                <span class="washer__panel">
+                  <span class="washer__dial"></span>
+                  <span class="washer__light"></span>
+                  <span class="washer__panel-label">WASH</span>
+                </span>
+                <span class="washer__window">
+                  <span class="washer__drum">
+                    <span class="washer__drum-inner"></span>
+                  </span>
+                </span>
+                <span class="washer__door-shadow"></span>
+              </button>
+
+              <div id="cursor-swarm" class="cursor-swarm" aria-hidden="true"></div>
+              <div id="floating-text-layer" class="floating-text-layer" aria-hidden="true"></div>
+            </div>
+
+            <div class="stage-footer">
+              <div class="stage-actions">
+                <button id="sound-toggle" class="sound-button" type="button" aria-pressed="true">
+                  Ambience: enable
+                </button>
+                <p class="total-output">
+                  Washed:
+                  <strong id="lifetime-total">0</strong>
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="shop-panel" aria-labelledby="shop-title">
+          <div class="shop-header">
+            <p class="eyebrow">Shop</p>
+            <h2 id="shop-title">Upgrades</h2>
+            <p>
+              Spend your clean laundry to speed up cycles, automate production, and make the
+              numbers explode.
+            </p>
+          </div>
+
+          <div id="shop-list" class="shop-list"></div>
+        </aside>
+      </main>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
