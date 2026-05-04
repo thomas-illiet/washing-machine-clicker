@@ -27,6 +27,14 @@ body {
   color: var(--ink);
 }
 
+button,
+.washer,
+.shop-buy,
+.sound-button {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   min-height: 100dvh;
   overflow: hidden;
