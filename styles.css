@@ -25,6 +25,8 @@ body {
   height: 100%;
   font-family: "Trebuchet MS", "Verdana", sans-serif;
   color: var(--ink);
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 button,
@@ -38,6 +40,7 @@ button,
 body {
   min-height: 100dvh;
   overflow: hidden;
+  -webkit-touch-callout: none;
   background:
     radial-gradient(circle at top left, rgba(255, 255, 255, 0.55), transparent 28%),
     radial-gradient(circle at 85% 18%, rgba(255, 255, 255, 0.42), transparent 20%),
