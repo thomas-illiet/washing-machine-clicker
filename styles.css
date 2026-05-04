@@ -71,7 +71,7 @@ body::after {
 }
 
 .app-shell {
-  width: min(1200px, calc(100% - 32px));
+  width: min(1320px, calc(100% - 32px));
   height: 100dvh;
   margin: 0 auto;
   padding: 28px 0 36px;
@@ -156,7 +156,7 @@ h1 {
 
 .game-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.95fr);
+  grid-template-columns: minmax(0, 1.45fr) minmax(400px, 1.08fr);
   gap: 24px;
   align-items: stretch;
   flex: 1;
@@ -261,7 +261,7 @@ h1 {
 .washer {
   position: relative;
   z-index: 1;
-  width: min(100%, 360px);
+  width: min(100%, 380px);
   aspect-ratio: 1 / 1;
   border: 0;
   border-radius: 38px;
@@ -854,6 +854,50 @@ h1 {
   100% {
     opacity: 0;
     transform: translate(-50%, -140%) scale(1.06);
+  }
+}
+
+@media (min-width: 1500px) {
+  .app-shell {
+    width: min(1560px, calc(100% - 56px));
+    padding-top: 32px;
+    padding-bottom: 42px;
+  }
+
+  .topbar {
+    gap: 34px;
+    margin-bottom: 30px;
+  }
+
+  .brand {
+    max-width: 700px;
+  }
+
+  .stats-panel {
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    max-width: 760px;
+  }
+
+  .game-layout {
+    grid-template-columns: minmax(0, 1.48fr) minmax(520px, 1.12fr);
+    gap: 30px;
+  }
+
+  .stage-card,
+  .shop-panel {
+    padding: 32px;
+  }
+
+  .washer-wrap {
+    min-height: clamp(340px, 42vh, 560px);
+  }
+
+  .washer {
+    width: min(100%, 430px);
+  }
+
+  .wash-water {
+    height: 118px;
   }
 }
 
