@@ -2,7 +2,9 @@ const GAME_CONFIG = {
   saveKey: "washing-machine-clicker-save-v1",
   autosaveIntervalMs: 5000,
   maxVisibleCursors: 18,
-  upgradeUnlockRatio: 0.65,
+  upgradeBaseCostMultiplier: 1.35,
+  upgradeCostGrowthFactor: 1.18,
+  upgradeUnlockRatio: 1.05,
   upgradeToastDurationMs: 3600,
   upgrades: [
     {
@@ -289,7 +291,11 @@ function formatNumber(value) {
 }
 
 function getUpgradeCost(upgrade, ownedCount) {
-  return Math.round(upgrade.baseCost * Math.pow(1.15, ownedCount));
+  return Math.round(
+    upgrade.baseCost *
+      GAME_CONFIG.upgradeBaseCostMultiplier *
+      Math.pow(GAME_CONFIG.upgradeCostGrowthFactor, ownedCount),
+  );
 }
 
 function getUpgradeUnlockRequirement(upgradeIndex) {
@@ -298,7 +304,7 @@ function getUpgradeUnlockRequirement(upgradeIndex) {
   }
 
   const upgrade = GAME_CONFIG.upgrades[upgradeIndex];
-  return Math.max(10, Math.round(upgrade.baseCost * GAME_CONFIG.upgradeUnlockRatio));
+  return Math.max(10, Math.round(getUpgradeCost(upgrade, 0) * GAME_CONFIG.upgradeUnlockRatio));
 }
 
 function getNextLockedUpgrade() {
@@ -745,9 +751,7 @@ function renderNextUnlockCard() {
   DOM.nextUnlockCard.querySelector('[data-role="next-description"]').textContent = nextUpgrade.description;
   DOM.nextUnlockCard.querySelector('[data-role="next-effect"]').textContent = nextUpgrade.effectLabel;
   DOM.nextUnlockCard.querySelector('[data-role="next-threshold"]').textContent = formatNumber(nextUpgrade.unlockRequirement);
-  DOM.nextUnlockCard.querySelector('[data-role="next-cost"]').textContent = formatNumber(
-    nextUpgrade.baseCost,
-  );
+  DOM.nextUnlockCard.querySelector('[data-role="next-cost"]').textContent = formatNumber(getUpgradeCost(nextUpgrade, 0));
   DOM.nextUnlockCard.querySelector('[data-role="next-progress-fill"]').style.width = `${progressRatio * 100}%`;
   DOM.nextUnlockCard.querySelector('[data-role="next-progress-label"]').textContent =
     `${formatNumber(progressValue)} / ${formatNumber(nextUpgrade.unlockRequirement)} washed since last unlock`;
