@@ -182,8 +182,14 @@ h1 {
   flex-direction: column;
 }
 
-.washer-stage .stage-card::before,
-.washer-stage .stage-card::after {
+.stage-copy,
+.washer-wrap,
+.stage-footer {
+  position: relative;
+  z-index: 1;
+}
+
+.washer-stage .stage-card::before {
   content: "";
   position: absolute;
   border-radius: 50%;
@@ -198,16 +204,52 @@ h1 {
   background: rgba(21, 182, 212, 0.12);
 }
 
-.washer-stage .stage-card::after {
-  width: 220px;
-  height: 220px;
-  left: -80px;
-  bottom: -100px;
-  background: rgba(255, 155, 87, 0.12);
+.wash-water {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 104px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 0 0 34px 34px;
+  line-height: 0;
+}
+
+.wash-water__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  margin-bottom: -7px;
+}
+
+.wash-water__parallax > use {
+  animation: wash-wave-slide 25s cubic-bezier(0.55, 0.5, 0.45, 0.5) infinite;
+}
+
+.wash-water__parallax > use:nth-child(1) {
+  animation-delay: -2s;
+  animation-duration: 7s;
+}
+
+.wash-water__parallax > use:nth-child(2) {
+  animation-delay: -3s;
+  animation-duration: 10s;
+}
+
+.wash-water__parallax > use:nth-child(3) {
+  animation-delay: -4s;
+  animation-duration: 13s;
+}
+
+.wash-water__parallax > use:nth-child(4) {
+  animation-delay: -5s;
+  animation-duration: 18s;
 }
 
 .washer-wrap {
-  position: relative;
   display: grid;
   place-items: center;
   min-height: clamp(250px, 36vh, 460px);
@@ -733,6 +775,16 @@ h1 {
   }
 }
 
+@keyframes wash-wave-slide {
+  from {
+    transform: translate3d(-90px, 0, 0);
+  }
+
+  to {
+    transform: translate3d(85px, 0, 0);
+  }
+}
+
 @keyframes cursor-orbit {
   from {
     transform:
@@ -868,6 +920,10 @@ h1 {
     margin: 10px 0 4px;
   }
 
+  .wash-water {
+    height: 82px;
+  }
+
   .washer {
     width: min(100%, 300px);
     border-radius: 32px;
@@ -927,6 +983,10 @@ h1 {
 
   .washer-wrap {
     min-height: 340px;
+  }
+
+  .wash-water {
+    height: 44px;
   }
 
   .washer {

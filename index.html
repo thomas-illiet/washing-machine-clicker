@@ -51,6 +51,29 @@
               <p id="washer-zone-label" class="eyebrow">Wash zone</p>
             </div>
 
+            <div class="wash-water" aria-hidden="true">
+              <svg
+                class="wash-water__svg"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 24 150 28"
+                preserveAspectRatio="none"
+                shape-rendering="auto"
+              >
+                <defs>
+                  <path
+                    id="wash-gentle-wave"
+                    d="M-160 44c30 0 58-18 88-18s58 18 88 18 58-18 88-18 58 18 88 18v44h-352z"
+                  />
+                </defs>
+                <g class="wash-water__parallax">
+                  <use href="#wash-gentle-wave" x="48" y="0" fill="rgba(116, 222, 250, 0.42)" />
+                  <use href="#wash-gentle-wave" x="48" y="3" fill="rgba(133, 232, 255, 0.52)" />
+                  <use href="#wash-gentle-wave" x="48" y="5" fill="rgba(220, 249, 255, 0.72)" />
+                  <use href="#wash-gentle-wave" x="48" y="7" fill="rgba(255, 255, 255, 0.96)" />
+                </g>
+              </svg>
+            </div>
+
             <div class="washer-wrap">
               <button
                 id="washer-button"
