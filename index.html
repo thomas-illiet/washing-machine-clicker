@@ -139,6 +139,49 @@
 
     <div id="toast-stack" class="toast-stack" aria-live="polite" aria-atomic="false"></div>
 
+    <div id="upgrade-modal" class="upgrade-modal" hidden>
+      <button
+        class="upgrade-modal__backdrop"
+        type="button"
+        data-modal-close
+        tabindex="-1"
+        aria-hidden="true"
+      ></button>
+      <div
+        class="upgrade-modal__dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="upgrade-modal-title"
+        aria-describedby="upgrade-modal-description"
+      >
+        <button
+          class="upgrade-modal__close"
+          type="button"
+          data-modal-close
+          aria-label="Close upgrade details"
+        >
+          ×
+        </button>
+        <div class="upgrade-modal__media">
+          <img
+            id="upgrade-modal-image"
+            class="upgrade-modal__image"
+            src=""
+            alt=""
+            width="512"
+            height="512"
+            decoding="async"
+          />
+        </div>
+        <div class="upgrade-modal__content">
+          <p class="upgrade-modal__eyebrow">Upgrade details</p>
+          <h3 id="upgrade-modal-title"></h3>
+          <p id="upgrade-modal-effect" class="upgrade-modal__effect"></p>
+          <p id="upgrade-modal-description" class="upgrade-modal__description"></p>
+        </div>
+      </div>
+    </div>
+
     <script src="script.js"></script>
   </body>
 </html>

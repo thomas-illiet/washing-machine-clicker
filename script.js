@@ -223,6 +223,11 @@ const DOM = {
   shopList: document.getElementById("shop-list"),
   soundToggle: document.getElementById("sound-toggle"),
   toastStack: document.getElementById("toast-stack"),
+  upgradeModal: document.getElementById("upgrade-modal"),
+  upgradeModalImage: document.getElementById("upgrade-modal-image"),
+  upgradeModalTitle: document.getElementById("upgrade-modal-title"),
+  upgradeModalEffect: document.getElementById("upgrade-modal-effect"),
+  upgradeModalDescription: document.getElementById("upgrade-modal-description"),
 };
 
 const LESSIVE_PLUS_ID = "lessive_plus";
@@ -266,6 +271,8 @@ const runtimeState = {
   revealedUpgradeIds: new Set(getInitialRevealedUpgradeIds()),
   unlockAnchorTotal: 0,
   detergentTabletTimeoutId: null,
+  upgradeModalHideTimeoutId: null,
+  activeUpgradeModalTrigger: null,
 };
 
 function formatNumber(value) {
@@ -293,6 +300,35 @@ function formatNumber(value) {
   return new Intl.NumberFormat("en-US", {
     maximumFractionDigits,
   }).format(safeValue);
+}
+
+function getUpgradeById(id) {
+  return GAME_CONFIG.upgrades.find((upgrade) => upgrade.id === id) || null;
+}
+
+function getUpgradeModalDescription(upgrade) {
+  const detailLines = [
+    upgrade.description,
+    `${upgrade.name} stays active permanently, so every copy stacks with the rest of your laundromat.`,
+  ];
+
+  if (upgrade.clickPower > 0 && upgrade.passivePower > 0) {
+    detailLines.push(
+      `Each purchase adds ${formatNumber(upgrade.clickPower)} clean laundry to every click and ${formatNumber(upgrade.passivePower)} clean laundry per second.`,
+    );
+  } else if (upgrade.clickPower > 0) {
+    detailLines.push(
+      `Each purchase adds ${formatNumber(upgrade.clickPower)} extra clean laundry to every click you make.`,
+    );
+  } else if (upgrade.passivePower > 0) {
+    detailLines.push(
+      `Each purchase keeps production running by generating ${formatNumber(upgrade.passivePower)} clean laundry per second on its own.`,
+    );
+  }
+
+  detailLines.push("It is a strong way to scale faster once the early machines start slowing down.");
+
+  return detailLines.join(" ");
 }
 
 function getUpgradeCost(upgrade, ownedCount) {
@@ -952,6 +988,59 @@ function renderCursorSwarm() {
   DOM.cursorSwarm.appendChild(fragment);
 }
 
+function openUpgradeModal(upgradeId, triggerElement) {
+  if (!DOM.upgradeModal) {
+    return;
+  }
+
+  const upgrade = getUpgradeById(upgradeId);
+  if (!upgrade) {
+    return;
+  }
+
+  if (runtimeState.upgradeModalHideTimeoutId) {
+    window.clearTimeout(runtimeState.upgradeModalHideTimeoutId);
+    runtimeState.upgradeModalHideTimeoutId = null;
+  }
+
+  runtimeState.activeUpgradeModalTrigger =
+    triggerElement instanceof HTMLElement ? triggerElement : document.activeElement;
+
+  DOM.upgradeModalTitle.textContent = upgrade.name;
+  DOM.upgradeModalEffect.textContent = upgrade.effectLabel;
+  DOM.upgradeModalDescription.textContent = getUpgradeModalDescription(upgrade);
+  DOM.upgradeModalImage.src = `assets/upgrades/${upgrade.id}.png`;
+  DOM.upgradeModalImage.alt = upgrade.name;
+  DOM.upgradeModal.hidden = false;
+  document.body.classList.add("has-modal-open");
+
+  window.requestAnimationFrame(() => {
+    DOM.upgradeModal.classList.add("is-visible");
+    DOM.upgradeModal.querySelector(".upgrade-modal__close")?.focus();
+  });
+}
+
+function closeUpgradeModal() {
+  if (!DOM.upgradeModal || DOM.upgradeModal.hidden) {
+    return;
+  }
+
+  const triggerToRefocus = runtimeState.activeUpgradeModalTrigger;
+
+  DOM.upgradeModal.classList.remove("is-visible");
+  document.body.classList.remove("has-modal-open");
+  runtimeState.activeUpgradeModalTrigger = null;
+
+  runtimeState.upgradeModalHideTimeoutId = window.setTimeout(() => {
+    DOM.upgradeModal.hidden = true;
+    runtimeState.upgradeModalHideTimeoutId = null;
+
+    if (triggerToRefocus instanceof HTMLElement && document.contains(triggerToRefocus)) {
+      triggerToRefocus.focus();
+    }
+  }, 180);
+}
+
 function render() {
   DOM.cleanCount.textContent = formatNumber(state.lingePropre);
   DOM.clickPower.textContent = formatNumber(state.parClic);
@@ -1025,7 +1114,7 @@ async function buyUpgrade(id) {
     await unlockAmbientSound();
   }
 
-  const upgrade = GAME_CONFIG.upgrades.find((entry) => entry.id === id);
+  const upgrade = getUpgradeById(id);
   if (!upgrade) {
     return;
   }
@@ -1142,7 +1231,12 @@ function buildShop() {
       .map((upgrade) => {
         return `
           <article class="shop-card" data-card-id="${upgrade.id}">
-            <div class="shop-card__media" aria-hidden="true">
+            <button
+              class="shop-card__media shop-card__media-button"
+              type="button"
+              data-upgrade-preview-id="${upgrade.id}"
+              aria-label="Open details for ${upgrade.name}"
+            >
               <img
                 class="shop-card__image"
                 src="assets/upgrades/${upgrade.id}.png"
@@ -1152,11 +1246,19 @@ function buildShop() {
                 loading="lazy"
                 decoding="async"
               />
-            </div>
+            </button>
             <div class="shop-card__content">
               <div class="shop-card__top">
                 <div class="shop-card__copy">
-                  <h3>${upgrade.name}</h3>
+                  <h3>
+                    <button
+                      class="shop-card__title-button"
+                      type="button"
+                      data-upgrade-preview-id="${upgrade.id}"
+                    >
+                      ${upgrade.name}
+                    </button>
+                  </h3>
                   <p class="shop-description">${upgrade.description}</p>
                 </div>
                 <span class="shop-owned">Owned: <span data-role="owned">0</span></span>
@@ -1213,13 +1315,29 @@ function buildShop() {
       buyUpgrade(button.dataset.upgradeId);
     });
   });
+
+  DOM.shopList.querySelectorAll("[data-upgrade-preview-id]").forEach((trigger) => {
+    trigger.addEventListener("click", () => {
+      openUpgradeModal(trigger.dataset.upgradePreviewId, trigger);
+    });
+  });
 }
 
 function setupEvents() {
   DOM.washerButton.addEventListener("click", handleWashClick);
   DOM.soundToggle.addEventListener("click", toggleAmbientSound);
+  DOM.upgradeModal?.addEventListener("click", (event) => {
+    if (event.target instanceof Element && event.target.closest("[data-modal-close]")) {
+      closeUpgradeModal();
+    }
+  });
   window.addEventListener("pointerdown", primeAmbientSoundFromGesture, { once: true });
   window.addEventListener("keydown", primeAmbientSoundFromGesture, { once: true });
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeUpgradeModal();
+    }
+  });
 
   window.addEventListener("beforeunload", saveGame);
   document.addEventListener("visibilitychange", () => {
