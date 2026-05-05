@@ -483,6 +483,9 @@ const GAME_CONFIG = {
   upgrades: UPGRADE_DEFINITIONS,
 };
 
+const ALL_TIERS_FILTER_ID = "all";
+const UPGRADE_TIERS = Array.from(new Set(GAME_CONFIG.upgrades.map((upgrade) => upgrade.chapter)));
+
 const DOM = {
   cleanCount: document.getElementById("clean-count"),
   clickPower: document.getElementById("click-power"),
@@ -492,6 +495,8 @@ const DOM = {
   detergentFallLayer: document.getElementById("detergent-fall-layer"),
   cursorSwarm: document.getElementById("cursor-swarm"),
   floatingTextLayer: document.getElementById("floating-text-layer"),
+  shopTierFilters: document.getElementById("shop-tier-filters"),
+  shopTierEmptyState: document.getElementById("shop-tier-empty-state"),
   shopList: document.getElementById("shop-list"),
   soundToggle: document.getElementById("sound-toggle"),
   toastStack: document.getElementById("toast-stack"),
@@ -545,6 +550,7 @@ const runtimeState = {
   detergentTabletTimeoutId: null,
   upgradeModalHideTimeoutId: null,
   activeUpgradeModalTrigger: null,
+  activeTierFilter: ALL_TIERS_FILTER_ID,
 };
 
 function formatNumber(value) {
@@ -591,6 +597,38 @@ function formatNumber(value) {
 
 function getUpgradeById(id) {
   return GAME_CONFIG.upgrades.find((upgrade) => upgrade.id === id) || null;
+}
+
+function getUpgradeTierNumber(chapter) {
+  const tierIndex = UPGRADE_TIERS.indexOf(chapter);
+  return tierIndex >= 0 ? tierIndex + 1 : 0;
+}
+
+function getUpgradeTierSummary(chapter) {
+  const tierNumber = getUpgradeTierNumber(chapter);
+  return tierNumber > 0 ? `Tier ${tierNumber}: ${chapter}` : chapter;
+}
+
+function getTierFilterOptions() {
+  return [
+    {
+      id: ALL_TIERS_FILTER_ID,
+      name: "All tiers",
+      chapter: "Show every upgrade tier",
+    },
+    ...UPGRADE_TIERS.map((chapter) => ({
+      id: chapter,
+      name: `Tier ${getUpgradeTierNumber(chapter)}`,
+      chapter,
+    })),
+  ];
+}
+
+function matchesActiveTierFilter(upgrade) {
+  return (
+    runtimeState.activeTierFilter === ALL_TIERS_FILTER_ID ||
+    upgrade.chapter === runtimeState.activeTierFilter
+  );
 }
 
 function getUpgradeEffectLabel(upgrade) {
@@ -672,9 +710,9 @@ function getUpgradeUnlockRequirement(upgradeIndex) {
   return Math.max(10, Math.round(getUpgradeCost(upgrade, 0) * GAME_CONFIG.upgradeUnlockRatio));
 }
 
-function getNextLockedUpgrade() {
+function getNextLockedUpgradeForTier(tierId = null) {
   const nextLockedIndex = GAME_CONFIG.upgrades.findIndex(
-    (upgrade) => !runtimeState.revealedUpgradeIds.has(upgrade.id),
+    (upgrade) => !runtimeState.revealedUpgradeIds.has(upgrade.id) && (!tierId || upgrade.chapter === tierId),
   );
 
   if (nextLockedIndex === -1) {
@@ -688,6 +726,10 @@ function getNextLockedUpgrade() {
     unlockRequirement: getUpgradeUnlockRequirement(nextLockedIndex),
     unlockThreshold: runtimeState.unlockAnchorTotal + getUpgradeUnlockRequirement(nextLockedIndex),
   };
+}
+
+function getNextLockedUpgrade() {
+  return getNextLockedUpgradeForTier();
 }
 
 function revealOwnedUpgradeIds(upgrades) {
@@ -1148,6 +1190,8 @@ function recalculateRates() {
 }
 
 function renderShop() {
+  let visibleRevealedCount = 0;
+
   GAME_CONFIG.upgrades.forEach((upgrade) => {
     const card = DOM.shopList.querySelector(`[data-card-id="${upgrade.id}"]`);
     if (!card) {
@@ -1155,11 +1199,14 @@ function renderShop() {
     }
 
     const isRevealed = runtimeState.revealedUpgradeIds.has(upgrade.id);
-    card.hidden = !isRevealed;
+    const matchesFilter = matchesActiveTierFilter(upgrade);
+    card.hidden = !isRevealed || !matchesFilter;
 
-    if (!isRevealed) {
+    if (card.hidden) {
       return;
     }
+
+    visibleRevealedCount += 1;
 
     const ownedCount = state.upgrades[upgrade.id] || 0;
     const cost = getUpgradeCost(upgrade, ownedCount);
@@ -1173,6 +1220,7 @@ function renderShop() {
   });
 
   renderNextUnlockCard();
+  renderTierEmptyState(visibleRevealedCount);
 }
 
 function renderNextUnlockCard() {
@@ -1185,7 +1233,9 @@ function renderNextUnlockCard() {
     return;
   }
 
-  const nextUpgrade = getNextLockedUpgrade();
+  const filteredTierId =
+    runtimeState.activeTierFilter === ALL_TIERS_FILTER_ID ? null : runtimeState.activeTierFilter;
+  const nextUpgrade = getNextLockedUpgradeForTier(filteredTierId);
 
   if (!nextUpgrade) {
     DOM.nextUnlockCard.hidden = true;
@@ -1198,6 +1248,7 @@ function renderNextUnlockCard() {
     nextUpgrade.unlockRequirement > 0 ? Math.min(1, progressValue / nextUpgrade.unlockRequirement) : 1;
 
   DOM.nextUnlockCard.hidden = false;
+  DOM.nextUnlockCard.querySelector('[data-role="next-tier"]').textContent = getUpgradeTierSummary(nextUpgrade.chapter);
   DOM.nextUnlockCard.querySelector('[data-role="next-name"]').textContent = nextUpgrade.name;
   DOM.nextUnlockCard.querySelector('[data-role="next-description"]').textContent = nextUpgrade.description;
   DOM.nextUnlockCard.querySelector('[data-role="next-effect"]').textContent = getUpgradeEffectLabel(nextUpgrade);
@@ -1206,6 +1257,83 @@ function renderNextUnlockCard() {
   DOM.nextUnlockCard.querySelector('[data-role="next-progress-fill"]').style.width = `${progressRatio * 100}%`;
   DOM.nextUnlockCard.querySelector('[data-role="next-progress-label"]').textContent =
     `${formatNumber(progressValue)} / ${formatNumber(nextUpgrade.unlockRequirement)} washed since last unlock`;
+}
+
+function renderTierFilters() {
+  if (!DOM.shopTierFilters) {
+    return;
+  }
+
+  DOM.shopTierFilters.querySelectorAll("[data-tier-filter-id]").forEach((button) => {
+    const isActive = button.dataset.tierFilterId === runtimeState.activeTierFilter;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
+}
+
+function renderTierEmptyState(visibleRevealedCount) {
+  if (!DOM.shopTierEmptyState) {
+    return;
+  }
+
+  if (runtimeState.activeTierFilter === ALL_TIERS_FILTER_ID || visibleRevealedCount > 0) {
+    DOM.shopTierEmptyState.hidden = true;
+    DOM.shopTierEmptyState.textContent = "";
+    return;
+  }
+
+  const nextUpgrade = getNextLockedUpgradeForTier(runtimeState.activeTierFilter);
+  DOM.shopTierEmptyState.hidden = false;
+
+  if (nextUpgrade) {
+    DOM.shopTierEmptyState.textContent =
+      `No revealed upgrades yet in ${getUpgradeTierSummary(runtimeState.activeTierFilter)}. Keep pushing toward ${nextUpgrade.name}.`;
+    return;
+  }
+
+  DOM.shopTierEmptyState.textContent =
+    `${getUpgradeTierSummary(runtimeState.activeTierFilter)} is fully unlocked. Try another tier to compare your upgrades.`;
+}
+
+function setActiveTierFilter(tierId) {
+  runtimeState.activeTierFilter = tierId;
+  renderTierFilters();
+  renderShop();
+
+  if (DOM.shopList) {
+    DOM.shopList.scrollTop = 0;
+  }
+}
+
+function buildTierFilters() {
+  if (!DOM.shopTierFilters) {
+    return;
+  }
+
+  DOM.shopTierFilters.innerHTML = getTierFilterOptions()
+    .map(
+      (tierOption) => `
+        <button
+          class="shop-tier-filter"
+          type="button"
+          data-tier-filter-id="${tierOption.id}"
+          aria-pressed="false"
+          title="${tierOption.chapter}"
+        >
+          <span class="shop-tier-filter__name">${tierOption.name}</span>
+          <span class="shop-tier-filter__chapter">${tierOption.chapter}</span>
+        </button>
+      `,
+    )
+    .join("");
+
+  DOM.shopTierFilters.querySelectorAll("[data-tier-filter-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+      setActiveTierFilter(button.dataset.tierFilterId || ALL_TIERS_FILTER_ID);
+    });
+  });
+
+  renderTierFilters();
 }
 
 function renderCursorSwarm() {
@@ -1570,6 +1698,7 @@ function buildShop() {
             <div class="shop-card__content">
               <div class="shop-card__top">
                 <div class="shop-card__copy">
+                  <p class="shop-tier-label">${getUpgradeTierSummary(upgrade.chapter)}</p>
                   <h3>
                     <button
                       class="shop-card__title-button"
@@ -1604,6 +1733,7 @@ function buildShop() {
           <div class="shop-card__top">
             <div class="shop-card__copy">
               <p class="shop-soon">Next unlock</p>
+              <p class="shop-tier-label shop-tier-label--locked" data-role="next-tier"></p>
               <h3 data-role="next-name"></h3>
               <p class="shop-description" data-role="next-description"></p>
             </div>
@@ -1677,6 +1807,7 @@ function setupEvents() {
 }
 
 function init() {
+  buildTierFilters();
   buildShop();
   loadGame();
   setupEvents();
