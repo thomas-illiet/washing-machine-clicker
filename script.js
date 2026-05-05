@@ -1,3 +1,474 @@
+const UPGRADE_DEFINITIONS = [
+  {
+    id: "lessive_plus",
+    name: "Detergent Plus",
+    chapter: "Local Laundromat",
+    description: "A brighter blend of soap gives every wash cycle a little more punch.",
+    baseCost: 15,
+    clickPower: 1,
+    passivePower: 0,
+  },
+  {
+    id: "essorage_rapide",
+    name: "Fast Spin",
+    chapter: "Local Laundromat",
+    description: "A tighter spin setting keeps the drum working even when your hands are off it.",
+    baseCost: 30,
+    clickPower: 0,
+    passivePower: 0.4,
+  },
+  {
+    id: "seche_linge",
+    name: "Turbo Dryer",
+    chapter: "Local Laundromat",
+    description: "A hotter drying lane clears each load before the next one even lands.",
+    baseCost: 80,
+    clickPower: 0,
+    passivePower: 1.2,
+  },
+  {
+    id: "employe_laverie",
+    name: "Laundry Attendant",
+    chapter: "Local Laundromat",
+    description: "An extra attendant keeps baskets moving while the front room stays busy.",
+    baseCost: 180,
+    clickPower: 0,
+    passivePower: 3.5,
+  },
+  {
+    id: "chaine_industrielle",
+    name: "Industrial Line",
+    chapter: "Automation Lab",
+    description: "A linked bank of washers turns one storefront into a dependable production line.",
+    baseCost: 420,
+    clickPower: 3,
+    passivePower: 8,
+  },
+  {
+    id: "canon_a_bulles",
+    name: "Bubble Cannon",
+    chapter: "Automation Lab",
+    description: "Pressurized foam jets blast fresh loads through the drum at ridiculous speed.",
+    baseCost: 900,
+    clickPower: 6,
+    passivePower: 18,
+  },
+  {
+    id: "escouade_pliage",
+    name: "Fold Bot Squad",
+    chapter: "Automation Lab",
+    description: "A robot folding crew keeps stacks moving so the washers never have to wait.",
+    baseCost: 1900,
+    clickPower: 10,
+    passivePower: 34,
+  },
+  {
+    id: "reacteur_mousse",
+    name: "Foam Reactor",
+    chapter: "Automation Lab",
+    description: "A humming core floods the floor with supercharged suds and steadier output.",
+    baseCost: 4200,
+    clickPower: 18,
+    passivePower: 62,
+  },
+  {
+    id: "laverie_orbitale",
+    name: "Orbital Laundromat",
+    chapter: "Planetary Expansion",
+    description: "A ring of zero-gravity machines keeps city demand handled from low orbit.",
+    baseCost: 9500,
+    clickPower: 32,
+    passivePower: 120,
+  },
+  {
+    id: "trou_noir_lavage",
+    name: "Black Hole Washer",
+    chapter: "Planetary Expansion",
+    description: "A collapsed drum bends space around each cycle and multiplies the result.",
+    baseCost: 22000,
+    clickPower: 58,
+    passivePower: 230,
+  },
+  {
+    id: "boucle_temporelle",
+    name: "Time Loop Laundry",
+    chapter: "Planetary Expansion",
+    description: "Short forecast loops send tomorrow's finished loads back into today's queue.",
+    baseCost: 50000,
+    clickPower: 105,
+    passivePower: 430,
+  },
+  {
+    id: "labo_rincage_quantique",
+    name: "Quantum Rinse Lab",
+    chapter: "Planetary Expansion",
+    description: "A precision lab tunes every rinse, filter, and mineral balance for peak yield.",
+    baseCost: 110000,
+    clickPower: 190,
+    passivePower: 820,
+  },
+  {
+    id: "batterie_sechage_solaire",
+    name: "Solar Dryer Array",
+    chapter: "Planetary Expansion",
+    description: "Sun-fed drying towers clear entire neighborhoods of laundry in a single sweep.",
+    baseCost: 240000,
+    clickPower: 340,
+    passivePower: 1600,
+  },
+  {
+    id: "usine_mousse_maree",
+    name: "Tidal Foam Plant",
+    chapter: "Planetary Expansion",
+    description: "A tidal plant turns ocean-scale foam pressure into nonstop wash capacity.",
+    baseCost: 520000,
+    clickPower: 620,
+    passivePower: 3200,
+  },
+  {
+    id: "district_pliage_neon",
+    name: "Neon Fold District",
+    chapter: "Planetary Expansion",
+    description: "A neon district of folding towers, conveyors, and depots never sleeps.",
+    baseCost: 1150000,
+    clickPower: 1100,
+    passivePower: 6200,
+  },
+  {
+    id: "colonie_lunaire_essorage",
+    name: "Lunar Spin Colony",
+    chapter: "Planetary Expansion",
+    description: "A lunar colony keeps low-gravity spin chambers running across the dark side.",
+    baseCost: 2600000,
+    clickPower: 1900,
+    passivePower: 12000,
+  },
+  {
+    id: "reacteur_pression_gravite",
+    name: "Gravity Press Reactor",
+    chapter: "Reality Distortion",
+    description: "Gravity-packed press chambers crush delay, wrinkles, and downtime into throughput.",
+    baseCost: 6500000,
+    clickPower: 3300,
+    passivePower: 23500,
+  },
+  {
+    id: "grille_laverie_multivers",
+    name: "Multiverse Laundry Grid",
+    chapter: "Reality Distortion",
+    description: "Parallel laundromats across nearby realities sync their totals into one bill.",
+    baseCost: 15000000,
+    clickPower: 5600,
+    passivePower: 47000,
+  },
+  {
+    id: "moteur_lavage_realite",
+    name: "Reality Wash Engine",
+    chapter: "Reality Distortion",
+    description: "A reality engine routes each stain into the cleanest possible timeline.",
+    baseCost: 39000000,
+    clickPower: 9300,
+    passivePower: 93000,
+  },
+  {
+    id: "coffre_lessive_cosmique",
+    name: "Cosmic Detergent Vault",
+    chapter: "Reality Distortion",
+    description: "A cosmic detergent vault keeps every colony, grid, and reactor permanently overclocked.",
+    baseCost: 105000000,
+    clickPower: 15500,
+    passivePower: 190000,
+  },
+  {
+    id: "noyau_vortex_infini",
+    name: "Infinity Whirlpool Core",
+    chapter: "Reality Distortion",
+    description: "An endless whirlpool core drags in whole freight waves and returns them spotless.",
+    baseCost: 330000000,
+    clickPower: 26000,
+    passivePower: 390000,
+  },
+  {
+    id: "singularite_savon_chrono",
+    name: "Chrono Soap Singularity",
+    chapter: "Reality Distortion",
+    description: "A chrono-soap singularity washes entire eras of backlog before a second can pass.",
+    baseCost: 1100000000,
+    clickPower: 43000,
+    passivePower: 800000,
+  },
+  {
+    id: "relais_linge_stellaire",
+    name: "Stellar Linen Relay",
+    chapter: "Stellar Expansion",
+    description: "A bright relay station beams clean freight between orbital laundries without a pause.",
+    baseCost: 2200000000,
+    clickPower: 70000,
+    passivePower: 1600000,
+  },
+  {
+    id: "flotte_vapeur_comete",
+    name: "Comet Steam Fleet",
+    chapter: "Stellar Expansion",
+    description: "Comet-skimming service ships haul heat, water, and finished loads across the system.",
+    baseCost: 3800000000,
+    clickPower: 115000,
+    passivePower: 3200000,
+  },
+  {
+    id: "chantier_sechage_nebuleuse",
+    name: "Nebula Dryer Yard",
+    chapter: "Stellar Expansion",
+    description: "A nebula-side drying yard bakes cargo mountains in clouds of charged vapor.",
+    baseCost: 6600000000,
+    clickPower: 190000,
+    passivePower: 6400000,
+  },
+  {
+    id: "batterie_pression_pulsar",
+    name: "Pulsar Press Array",
+    chapter: "Stellar Expansion",
+    description: "Pulsar-timed presses compress every load into a faster, hotter production rhythm.",
+    baseCost: 11500000000,
+    clickPower: 315000,
+    passivePower: 12500000,
+  },
+  {
+    id: "anneau_quasar_tissu",
+    name: "Quasar Fabric Ring",
+    chapter: "Stellar Expansion",
+    description: "A quasar-lit ring spins fabric streams around a core of impossible throughput.",
+    baseCost: 20000000000,
+    clickPower: 520000,
+    passivePower: 24000000,
+  },
+  {
+    id: "nexus_mousse_systeme",
+    name: "System Suds Nexus",
+    chapter: "Stellar Expansion",
+    description: "A systemwide detergent nexus feeds every dock, depot, and washer from one radiant source.",
+    baseCost: 35000000000,
+    clickPower: 860000,
+    passivePower: 46000000,
+  },
+  {
+    id: "convoi_pliage_asteroide",
+    name: "Asteroid Fold Convoy",
+    chapter: "Interplanetary Logistics",
+    description: "Armored folding barges ride asteroid belts to keep interplanetary shipments perfectly stacked.",
+    baseCost: 61000000000,
+    clickPower: 1400000,
+    passivePower: 88000000,
+  },
+  {
+    id: "ascenseur_fret_orbital",
+    name: "Orbital Freight Elevator",
+    chapter: "Interplanetary Logistics",
+    description: "A freight elevator lifts entire city outputs into orbit without slowing the floor below.",
+    baseCost: 106000000000,
+    clickPower: 2250000,
+    passivePower: 170000000,
+  },
+  {
+    id: "port_linge_planetaire",
+    name: "Planetary Linen Port",
+    chapter: "Interplanetary Logistics",
+    description: "A dedicated linen port coordinates dock traffic, sorters, and wash queues across whole worlds.",
+    baseCost: 185000000000,
+    clickPower: 3600000,
+    passivePower: 330000000,
+  },
+  {
+    id: "treillis_sechage_dyson",
+    name: "Dyson Dryer Lattice",
+    chapter: "Interplanetary Logistics",
+    description: "A star-hugging dryer lattice turns captured sunlight into industrial-scale finishing power.",
+    baseCost: 322000000000,
+    clickPower: 5800000,
+    passivePower: 630000000,
+  },
+  {
+    id: "bassin_blanchisserie_terraforme",
+    name: "Terraform Laundry Basin",
+    chapter: "Interplanetary Logistics",
+    description: "A terraformed basin channels weather, rivers, and steam fields into one colossal wash reserve.",
+    baseCost: 560000000000,
+    clickPower: 9300000,
+    passivePower: 1200000000,
+  },
+  {
+    id: "broche_tri_interplanetaire",
+    name: "Interplanetary Sortation Spindle",
+    chapter: "Interplanetary Logistics",
+    description: "A kilometer-long spindle keeps a dozen planetary supply lines sorted, timed, and spotless.",
+    baseCost: 970000000000,
+    clickPower: 15000000,
+    passivePower: 2300000000,
+  },
+  {
+    id: "reseau_laverie_spirale",
+    name: "Spiral Laundry Network",
+    chapter: "Galactic Network",
+    description: "A spiral-arm network links distant laundromats into one self-balancing service web.",
+    baseCost: 1680000000000,
+    clickPower: 24000000,
+    passivePower: 4400000000,
+  },
+  {
+    id: "fonderie_mousse_galactique",
+    name: "Galactic Foam Foundry",
+    chapter: "Galactic Network",
+    description: "A galaxy-scale foundry refines detergent matter for fleets, ports, and orbital districts at once.",
+    baseCost: 2910000000000,
+    clickPower: 39000000,
+    passivePower: 8400000000,
+  },
+  {
+    id: "grille_service_amas",
+    name: "Starcluster Service Grid",
+    chapter: "Galactic Network",
+    description: "A cluster-spanning grid dispatches crews, energy, and rinse cycles before delays can form.",
+    baseCost: 5040000000000,
+    clickPower: 63000000,
+    passivePower: 16000000000,
+  },
+  {
+    id: "accord_lavage_espace_profond",
+    name: "Deep Space Wash Accord",
+    chapter: "Galactic Network",
+    description: "A deep-space accord standardizes cleaning across drifting colonies, freighters, and listening posts.",
+    baseCost: 8720000000000,
+    clickPower: 100000000,
+    passivePower: 30000000000,
+  },
+  {
+    id: "maillage_tri_voie_lactee",
+    name: "Milky Way Sortation Mesh",
+    chapter: "Galactic Network",
+    description: "A luminous sortation mesh routes billions of loads through the galaxy without a single jam.",
+    baseCost: 15000000000000,
+    clickPower: 160000000,
+    passivePower: 57000000000,
+  },
+  {
+    id: "pipeline_proprete_extragalactique",
+    name: "Extragalactic Clean Pipeline",
+    chapter: "Galactic Network",
+    description: "A clean pipeline jumps beyond the home galaxy and sends finished freight back already folded.",
+    baseCost: 25800000000000,
+    clickPower: 255000000,
+    passivePower: 108000000000,
+  },
+  {
+    id: "forge_essorage_dimensionnelle",
+    name: "Dimensional Spin Forge",
+    chapter: "Dimensional Engineering",
+    description: "A dimensional forge tempers spin cycles in pocket worlds where friction and time obey new rules.",
+    baseCost: 44300000000000,
+    clickPower: 405000000,
+    passivePower: 204000000000,
+  },
+  {
+    id: "batterie_rincage_causalite",
+    name: "Causality Rinse Array",
+    chapter: "Dimensional Engineering",
+    description: "A causality rinse array cleans the cause of stains before the stain can finish happening.",
+    baseCost: 75900000000000,
+    clickPower: 640000000,
+    passivePower: 385000000000,
+  },
+  {
+    id: "chantier_compression_temporelle",
+    name: "Timeline Compression Yard",
+    chapter: "Dimensional Engineering",
+    description: "A compression yard packs entire production weeks into a single controllable instant.",
+    baseCost: 129700000000000,
+    clickPower: 1000000000,
+    passivePower: 725000000000,
+  },
+  {
+    id: "bureau_service_trou_ver",
+    name: "Wormhole Service Bureau",
+    chapter: "Dimensional Engineering",
+    description: "A bureau of wormhole clerks reroutes each load through the nearest version of already-clean.",
+    baseCost: 221000000000000,
+    clickPower: 1580000000,
+    passivePower: 1360000000000,
+  },
+  {
+    id: "cathedrale_lavage_probabilite",
+    name: "Probability Wash Cathedral",
+    chapter: "Dimensional Engineering",
+    description: "A cathedral of probability tilts chance so every cycle lands on its cleanest possible outcome.",
+    baseCost: 376000000000000,
+    clickPower: 2450000000,
+    passivePower: 2550000000000,
+  },
+  {
+    id: "metier_mousse_continuum",
+    name: "Continuum Foam Loom",
+    chapter: "Dimensional Engineering",
+    description: "A continuum loom weaves detergent, history, and throughput into one seamless production fabric.",
+    baseCost: 639000000000000,
+    clickPower: 3800000000,
+    passivePower: 4750000000000,
+  },
+  {
+    id: "senat_blanchisserie_omniversel",
+    name: "Omniverse Laundry Senate",
+    chapter: "Omniversal Finale",
+    description: "An impossible senate coordinates laundering policy across realities that should never have met.",
+    baseCost: 1085000000000000,
+    clickPower: 5900000000,
+    passivePower: 8850000000000,
+  },
+  {
+    id: "reservoir_placard_infini",
+    name: "Infinite Closet Reservoir",
+    chapter: "Omniversal Finale",
+    description: "A bottomless reservoir stores every folded thing that can exist and still asks for more.",
+    baseCost: 1840000000000000,
+    clickPower: 9100000000,
+    passivePower: 16400000000000,
+  },
+  {
+    id: "tribunal_tache_eternelle",
+    name: "Eternal Stain Tribunal",
+    chapter: "Omniversal Finale",
+    description: "A timeless tribunal judges every stain guilty and erases its appeal from every timeline.",
+    baseCost: 3110000000000000,
+    clickPower: 14000000000,
+    passivePower: 30200000000000,
+  },
+  {
+    id: "moteur_meta_lessive",
+    name: "Meta Detergent Engine",
+    chapter: "Omniversal Finale",
+    description: "A meta-engine manufactures the very idea of soap faster than universes can spend it.",
+    baseCost: 5250000000000000,
+    clickPower: 21500000000,
+    passivePower: 55500000000000,
+  },
+  {
+    id: "couronne_tourbillon_sans_borne",
+    name: "Boundless Whirlpool Crown",
+    chapter: "Omniversal Finale",
+    description: "A crowned whirlpool gathers every last backlog from creation and throws it back clean.",
+    baseCost: 8840000000000000,
+    clickPower: 33000000000,
+    passivePower: 101000000000000,
+  },
+  {
+    id: "protocole_proprete_absolue",
+    name: "Absolute Clean Protocol",
+    chapter: "Omniversal Finale",
+    description: "The final protocol declares every possible load already finished, folded, and perfectly clean.",
+    baseCost: 14800000000000000,
+    clickPower: 50000000000,
+    passivePower: 185000000000000,
+  },
+];
+
 const GAME_CONFIG = {
   saveKey: "washing-machine-clicker-save-v1",
   autosaveIntervalMs: 5000,
@@ -9,206 +480,7 @@ const GAME_CONFIG = {
   upgradeCostGrowthFactor: 1.18,
   upgradeUnlockRatio: 1.05,
   upgradeToastDurationMs: 3600,
-  upgrades: [
-    {
-      id: "lessive_plus",
-      name: "Detergent Plus",
-      description: "A premium foam mix that boosts the efficiency of every cycle.",
-      baseCost: 15,
-      clickPower: 1,
-      passivePower: 0,
-      effectLabel: "+1 laundry per click",
-    },
-    {
-      id: "essorage_rapide",
-      name: "Fast Spin",
-      description: "The drum picks up speed even when you are not clicking.",
-      baseCost: 30,
-      clickPower: 0,
-      passivePower: 0.4,
-      effectLabel: "+0.4 laundry per second",
-    },
-    {
-      id: "seche_linge",
-      name: "Turbo Dryer",
-      description: "Fresh laundry comes out warm and ready to be folded.",
-      baseCost: 80,
-      clickPower: 0,
-      passivePower: 1.2,
-      effectLabel: "+1.2 laundry per second",
-    },
-    {
-      id: "employe_laverie",
-      name: "Laundry Attendant",
-      description: "Someone watches the floor while production keeps climbing.",
-      baseCost: 180,
-      clickPower: 0,
-      passivePower: 3.5,
-      effectLabel: "+3.5 laundry per second",
-    },
-    {
-      id: "chaine_industrielle",
-      name: "Industrial Line",
-      description: "A full line of machines turns the laundromat into a factory.",
-      baseCost: 420,
-      clickPower: 3,
-      passivePower: 8,
-      effectLabel: "+3 per click and +8 per second",
-    },
-    {
-      id: "canon_a_bulles",
-      name: "Bubble Cannon",
-      description: "A foam-blasting cannon that launches spotless loads at absurd speed.",
-      baseCost: 900,
-      clickPower: 5,
-      passivePower: 14,
-      effectLabel: "+5 per click and +14 per second",
-    },
-    {
-      id: "escouade_pliage",
-      name: "Fold Bot Squad",
-      description: "A synchronized crew of folding robots keeps the clean stacks moving nonstop.",
-      baseCost: 1800,
-      clickPower: 2,
-      passivePower: 26,
-      effectLabel: "+2 per click and +26 per second",
-    },
-    {
-      id: "reacteur_mousse",
-      name: "Foam Reactor",
-      description: "A glowing suds core supercharges every wash cycle like a tiny sci-fi sun.",
-      baseCost: 4200,
-      clickPower: 12,
-      passivePower: 55,
-      effectLabel: "+12 per click and +55 per second",
-    },
-    {
-      id: "laverie_orbitale",
-      name: "Orbital Laundromat",
-      description: "A ring of zero-gravity washers spins above the city cleaning laundry in orbit.",
-      baseCost: 9500,
-      clickPower: 24,
-      passivePower: 125,
-      effectLabel: "+24 per click and +125 per second",
-    },
-    {
-      id: "trou_noir_lavage",
-      name: "Black Hole Washer",
-      description: "An impossible washer bends space, time, and detergent into pure output.",
-      baseCost: 22000,
-      clickPower: 55,
-      passivePower: 280,
-      effectLabel: "+55 per click and +280 per second",
-    },
-    {
-      id: "boucle_temporelle",
-      name: "Time Loop Laundry",
-      description: "Tomorrow's clean laundry arrives today, again and again and again.",
-      baseCost: 50000,
-      clickPower: 120,
-      passivePower: 620,
-      effectLabel: "+120 per click and +620 per second",
-    },
-    {
-      id: "labo_rincage_quantique",
-      name: "Quantum Rinse Lab",
-      description: "A clean-room lab tunes every rinse cycle with impossible precision.",
-      baseCost: 100000,
-      clickPower: 190,
-      passivePower: 900,
-      effectLabel: "+190 per click and +900 per second",
-    },
-    {
-      id: "batterie_sechage_solaire",
-      name: "Solar Dryer Array",
-      description: "Rows of sun-charged dryers bake through mountains of laundry at once.",
-      baseCost: 210000,
-      clickPower: 330,
-      passivePower: 1900,
-      effectLabel: "+330 per click and +1.9K per second",
-    },
-    {
-      id: "usine_mousse_maree",
-      name: "Tidal Foam Plant",
-      description: "A coastal foam plant pumps endless detergent waves straight into the drums.",
-      baseCost: 470000,
-      clickPower: 550,
-      passivePower: 3900,
-      effectLabel: "+550 per click and +3.9K per second",
-    },
-    {
-      id: "district_pliage_neon",
-      name: "Neon Fold District",
-      description: "An entire glowing district folds, stacks, and ships laundry nonstop.",
-      baseCost: 1100000,
-      clickPower: 900,
-      passivePower: 7600,
-      effectLabel: "+900 per click and +7.6K per second",
-    },
-    {
-      id: "colonie_lunaire_essorage",
-      name: "Lunar Spin Colony",
-      description: "Low-gravity wash towers on the moon keep the spin cycle permanently boosted.",
-      baseCost: 2600000,
-      clickPower: 1450,
-      passivePower: 14500,
-      effectLabel: "+1.45K per click and +14.5K per second",
-    },
-    {
-      id: "reacteur_pression_gravite",
-      name: "Gravity Press Reactor",
-      description: "A reactor crushes wrinkles and time itself into pure throughput.",
-      baseCost: 6500000,
-      clickPower: 2400,
-      passivePower: 28500,
-      effectLabel: "+2.4K per click and +28.5K per second",
-    },
-    {
-      id: "grille_laverie_multivers",
-      name: "Multiverse Laundry Grid",
-      description: "Parallel laundromats across nearby realities all bill their output to you.",
-      baseCost: 18000000,
-      clickPower: 3900,
-      passivePower: 59000,
-      effectLabel: "+3.9K per click and +59K per second",
-    },
-    {
-      id: "moteur_lavage_realite",
-      name: "Reality Wash Engine",
-      description: "A reality engine resets dirty fabric into the cleanest possible timeline.",
-      baseCost: 52000000,
-      clickPower: 6300,
-      passivePower: 120000,
-      effectLabel: "+6.3K per click and +120K per second",
-    },
-    {
-      id: "coffre_lessive_cosmique",
-      name: "Cosmic Detergent Vault",
-      description: "A sealed vault of star-grade detergent keeps every machine overclocked forever.",
-      baseCost: 170000000,
-      clickPower: 9800,
-      passivePower: 250000,
-      effectLabel: "+9.8K per click and +250K per second",
-    },
-    {
-      id: "noyau_vortex_infini",
-      name: "Infinity Whirlpool Core",
-      description: "An infinite vortex drags in dirty laundry and spits it back spotless.",
-      baseCost: 620000000,
-      clickPower: 15000,
-      passivePower: 500000,
-      effectLabel: "+15K per click and +500K per second",
-    },
-    {
-      id: "singularite_savon_chrono",
-      name: "Chrono Soap Singularity",
-      description: "The final machine washes entire centuries of laundry in a single blink.",
-      baseCost: 2600000000,
-      clickPower: 23000,
-      passivePower: 980000,
-      effectLabel: "+23K per click and +980K per second",
-    },
-  ],
+  upgrades: UPGRADE_DEFINITIONS,
 };
 
 const DOM = {
@@ -279,6 +551,12 @@ function formatNumber(value) {
   const safeValue = Math.max(0, value);
   const absoluteValue = Math.abs(safeValue);
   const compactUnits = [
+    { value: 1e33, suffix: "Dc" },
+    { value: 1e30, suffix: "No" },
+    { value: 1e27, suffix: "Oc" },
+    { value: 1e24, suffix: "Sp" },
+    { value: 1e21, suffix: "Sx" },
+    { value: 1e18, suffix: "Qi" },
     { value: 1e15, suffix: "Qa" },
     { value: 1e12, suffix: "T" },
     { value: 1e9, suffix: "B" },
@@ -286,10 +564,19 @@ function formatNumber(value) {
     { value: 1e3, suffix: "K" },
   ];
 
+  if (absoluteValue >= 1e36) {
+    return safeValue.toExponential(2).replace("e+", "e");
+  }
+
   const compactUnit = compactUnits.find((unit) => absoluteValue >= unit.value);
 
   if (compactUnit && absoluteValue >= 10000) {
     const scaledValue = safeValue / compactUnit.value;
+
+    if (scaledValue >= 1000 && compactUnit.value === compactUnits[0].value) {
+      return safeValue.toExponential(2).replace("e+", "e");
+    }
+
     const maximumFractionDigits = scaledValue >= 100 ? 0 : scaledValue >= 10 ? 1 : 2;
 
     return `${new Intl.NumberFormat("en-US", { maximumFractionDigits }).format(scaledValue)}${compactUnit.suffix}`;
@@ -306,9 +593,42 @@ function getUpgradeById(id) {
   return GAME_CONFIG.upgrades.find((upgrade) => upgrade.id === id) || null;
 }
 
+function getUpgradeEffectLabel(upgrade) {
+  if (upgrade.clickPower > 0 && upgrade.passivePower > 0) {
+    return `+${formatNumber(upgrade.clickPower)} per click and +${formatNumber(upgrade.passivePower)} per second`;
+  }
+
+  if (upgrade.clickPower > 0) {
+    return `+${formatNumber(upgrade.clickPower)} laundry per click`;
+  }
+
+  if (upgrade.passivePower > 0) {
+    return `+${formatNumber(upgrade.passivePower)} laundry per second`;
+  }
+
+  return "No output bonus";
+}
+
+function getUpgradeScaleHint(upgrade) {
+  const chapterNotes = {
+    "Local Laundromat": "It smooths out the opening stretch and helps your first automation pieces come online faster.",
+    "Automation Lab": "It carries the early midgame once one washer and a single helper are no longer enough.",
+    "Planetary Expansion": "It keeps your growth steady while the shop shifts from a busy block to city and planetary scale.",
+    "Reality Distortion": "It is tuned for the late game, where giant unlock jumps need stronger compounding from every purchase.",
+    "Stellar Expansion": "It opens the stellar phase, where each upgrade has to feed freight, heat, and detergent across entire systems.",
+    "Interplanetary Logistics": "It supports the logistics arc, where throughput depends on moving impossible amounts of laundry without bottlenecks.",
+    "Galactic Network": "It is built for galaxy-spanning infrastructure, where scale matters more than any single machine ever could.",
+    "Dimensional Engineering": "It belongs to the deep endgame, where time, causality, and routing tricks keep impossible unlocks within reach.",
+    "Omniversal Finale": "It is part of the final absurd climb, where only universe-sized gains keep the last tiers moving.",
+  };
+
+  return chapterNotes[upgrade.chapter] || "It keeps your laundromat compounding faster as the shop escalates.";
+}
+
 function getUpgradeModalDescription(upgrade) {
   const detailLines = [
     upgrade.description,
+    `${upgrade.name} belongs to the ${upgrade.chapter} chapter of your laundromat expansion.`,
     `${upgrade.name} stays active permanently, so every copy stacks with the rest of your laundromat.`,
   ];
 
@@ -326,7 +646,7 @@ function getUpgradeModalDescription(upgrade) {
     );
   }
 
-  detailLines.push("It is a strong way to scale faster once the early machines start slowing down.");
+  detailLines.push(getUpgradeScaleHint(upgrade));
 
   return detailLines.join(" ");
 }
@@ -435,7 +755,7 @@ function showUnlockToast(upgrade) {
     <div class="unlock-toast__content">
       <p class="unlock-toast__eyebrow">Upgrade unlocked</p>
       <strong class="unlock-toast__title">${upgrade.name}</strong>
-      <p class="unlock-toast__effect">${upgrade.effectLabel}</p>
+      <p class="unlock-toast__effect">${getUpgradeEffectLabel(upgrade)}</p>
     </div>
   `;
 
@@ -880,7 +1200,7 @@ function renderNextUnlockCard() {
   DOM.nextUnlockCard.hidden = false;
   DOM.nextUnlockCard.querySelector('[data-role="next-name"]').textContent = nextUpgrade.name;
   DOM.nextUnlockCard.querySelector('[data-role="next-description"]').textContent = nextUpgrade.description;
-  DOM.nextUnlockCard.querySelector('[data-role="next-effect"]').textContent = nextUpgrade.effectLabel;
+  DOM.nextUnlockCard.querySelector('[data-role="next-effect"]').textContent = getUpgradeEffectLabel(nextUpgrade);
   DOM.nextUnlockCard.querySelector('[data-role="next-threshold"]').textContent = formatNumber(nextUpgrade.unlockRequirement);
   DOM.nextUnlockCard.querySelector('[data-role="next-cost"]').textContent = formatNumber(getUpgradeCost(nextUpgrade, 0));
   DOM.nextUnlockCard.querySelector('[data-role="next-progress-fill"]').style.width = `${progressRatio * 100}%`;
@@ -1007,7 +1327,7 @@ function openUpgradeModal(upgradeId, triggerElement) {
     triggerElement instanceof HTMLElement ? triggerElement : document.activeElement;
 
   DOM.upgradeModalTitle.textContent = upgrade.name;
-  DOM.upgradeModalEffect.textContent = upgrade.effectLabel;
+  DOM.upgradeModalEffect.textContent = getUpgradeEffectLabel(upgrade);
   DOM.upgradeModalDescription.textContent = getUpgradeModalDescription(upgrade);
   DOM.upgradeModalImage.src = `assets/upgrades/${upgrade.id}.png`;
   DOM.upgradeModalImage.alt = upgrade.name;
@@ -1264,7 +1584,7 @@ function buildShop() {
                 <span class="shop-owned">Owned: <span data-role="owned">0</span></span>
               </div>
               <div class="shop-card__bottom">
-                <p class="shop-effect">${upgrade.effectLabel}</p>
+                <p class="shop-effect">${getUpgradeEffectLabel(upgrade)}</p>
                 <button class="shop-buy" type="button" data-upgrade-id="${upgrade.id}">
                   <span>Buy</span>
                   <strong data-role="button-cost">${formatNumber(upgrade.baseCost)}</strong>
